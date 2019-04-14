@@ -1,4 +1,8 @@
 from enum import Enum
+from collections import defaultdict
+from sys import stdin, stdout
+from io import StringIO
+from typing import Any, DefaultDict
 
 
 class Token(Enum):
@@ -10,7 +14,6 @@ class Token(Enum):
     DOUBLE_APOSTROPHE = '\"'
     ASSIGNMENT = '='
     SPACE = ' '
-    COMMA = ','
     SEMICOLON = ';'
     COLON = ':'
     # commands
@@ -27,155 +30,145 @@ class Token(Enum):
         return Token.FAIL
 
     @classmethod
-    def val(cls):
+    def val(cls) -> str:
         return cls.value
 
 
-class Parser(object):
-    def __init__(self, namespace):
-        self.namespace = namespace
-        self.rez = []
-        self.sub = []
-        self.substituted = []
-        self.is_correct = True
-        self.output = []
+class ApostropheException(Exception):
+    def __init___(self):
+        super().__init__('Invalid apostrophe count')
 
-    def parse(self, command):
-        command = ' '.join(command.split())
-        rez = []
+
+class EmptyParserResult(Exception):
+    def __init__(self):
+        super().__init__('Run method parse before get_parsed')
+
+
+class Parser(object):
+    def __init__(self, namespace: defaultdict):
+        self.__namespace = namespace
+        self.__rez = None
+
+    def __split_by_tokens(self, command: str) -> None:
+        # split command by tokens
+        __rez = []
         buf = ''
         for symbol in command:
             if Token.find(symbol) is Token.FAIL:
                 buf += symbol
             else:
-                if buf:
-                    rez.append(buf)
-                rez.append(symbol)
+                __rez.append(buf)
+                __rez.append(symbol)
                 buf = ''
-            if Token.find(buf) is not Token.FAIL:
-                if buf:
-                    rez.append(buf)
-                rez.append(buf)
-                buf = ''
-        if buf:
-            rez.append(buf)
-        self.rez = rez
+        __rez.append(buf)
+        self.__rez = [e for e in __rez if e]
 
     @staticmethod
-    def substitute_on_segment(start, end, whole, namespace):
-        # Make substitution on segment from
-        # start position to end in the whole
-        # array
-        segment = []
-        flag_continue = False
-        for inner_index in range(start, end):
-            if flag_continue:
-                flag_continue = False
-                continue
-            element = whole[inner_index]
-            if Token.find(element) == Token.SUBSTITUTION:
-                var = whole[inner_index + 1]
-                flag_continue = True
-                if var in namespace:
-                    segment.append(namespace[var])
-                else:
-                    segment.append('')
-                inner_index += 1
+    def substitute_on_segment(segment: list, namespace: defaultdict) -> list:
+        for idx, element in enumerate(segment):
+            if Token.find(element) is Token.SUBSTITUTION:
+                segment[idx + 1] = namespace[segment[idx + 1]]
+        return [e for e in segment if Token.find(e) is not Token.APOSTROPHE and
+                Token.find(e) is not Token.SUBSTITUTION]
+
+    def __substitute_inside_2apostrophe(self) -> None:
+        positions = [pos for pos, elem in enumerate(self.__rez)
+                     if Token.find(elem) is Token.DOUBLE_APOSTROPHE]
+        if len(positions) % 2 != 0:
+            raise ApostropheException
+        positions = [0] + positions + [len(self.__rez)]
+
+        substituted = []
+        for idx, (start, end) in enumerate(zip(positions[:-1], positions[1:])):
+            if idx % 2 == 0:
+                substituted += self.__rez[start: end]
             else:
-                segment.append(element)
-        return segment
+                substituted += Parser.substitute_on_segment(
+                    self.__rez[start: end], self.__namespace)
 
-    def substitute(self):
-        if not self.rez:
-            pass
+        self.__rez = substituted
 
-        double_apostrophe_indexes = [
-            idx for idx, elem in enumerate(self.rez)
-            if Token.find(elem) is Token.DOUBLE_APOSTROPHE]
-        self.is_correct = len(double_apostrophe_indexes) % 2 == 0
+    def __join_inside_single_apostrophe(self) -> None:
+        positions = [pos for pos, elem in enumerate(self.__rez)
+                     if Token.find(elem) is Token.APOSTROPHE]
+        if len(positions) % 2 != 0:
+            raise ApostropheException
 
-        # make substitution
-        sub_1 = []
-        if double_apostrophe_indexes:
-            prev = 0
-            for index in range(len(double_apostrophe_indexes) // 2):
-                start = double_apostrophe_indexes[2 * index]
-                end = double_apostrophe_indexes[2 * index + 1]
-                sub_1 += self.rez[prev: start]
-                prev = end
-                sub_1 += Parser.substitute_on_segment(
-                    start, end,
-                    self.rez,
-                    self.namespace
-                )
-            sub_1 += self.rez[prev:]
-        else:
-            sub_1 = self.rez[:]
-        print(sub_1)
+        positions = [0] + positions + [len(self.__rez)]
+        joined = []
+        for idx, (start, end) in enumerate(zip(positions[:-1], positions[1:])):
+            if idx % 2 == 0:
+                joined += self.__rez[start: end]
+            else:
+                joined += [''.join(self.__rez[start + 1: end])]
 
-        apostrophe_indexes = [
-            idx for idx, elem in enumerate(sub_1)
-            if Token.find(elem) is Token.APOSTROPHE]
-        self.is_correct = self.is_correct and len(apostrophe_indexes) % 2 == 0
+        self.__rez = [e for e in joined if
+                      not Token.find(e) is Token.SUBSTITUTION]
 
-        sub_2 = []
-        if apostrophe_indexes:
-            # merge all in single apostrophe
-            prev = 0
-            for index in range(len(apostrophe_indexes) // 2):
-                start = apostrophe_indexes[2 * index]
-                end = apostrophe_indexes[2 * index + 1]
-                sub_2 += sub_1[prev: start]
-                prev = end
-                sub_2 += [''.join(sub_1[start: end])]
-            sub_2 += sub_1[prev:]
-        else:
-            sub_2 = sub_1[:]
+    def parse(self, command: str) -> None:
+        self.__split_by_tokens(command)
+        self.__substitute_inside_2apostrophe()
+        self.__join_inside_single_apostrophe()
+        # clear all apostrophe and empty or space
+        self.__rez = [e for e in self.__rez if e and
+                      not Token.find(e) is Token.APOSTROPHE and
+                      not Token.find(e) is Token.DOUBLE_APOSTROPHE and
+                      not Token.find(e) is Token.SPACE]
 
-        self.sub = Parser.substitute_on_segment(
-            0, len(sub_2), sub_2, self.namespace)
+    def get_parsed(self) -> list:
+        if self.__rez is None:
+            raise EmptyParserResult
+        return self.__rez
 
-    def make_clear_output(self):
-        skip_it = {
-            Token.DOUBLE_APOSTROPHE,
-            Token.SPACE,
-            Token.APOSTROPHE
-        }
-        for elem in self.sub:
-            if Token.find(elem) in skip_it or not elem:
-                continue
-            self.output.append(elem)
+    def get_namespace(self):
+        return self.__namespace
 
 
 class Core(object):
-    def __init__(self, parser):
-        self.cmd = parser.output
-        self.namespace = parser.namespace
-        self.spltted = []
+    def __init__(self, parser: Parser, commands: DefaultDict[str, Any]):
+        self.__commands = commands
+        self.__parsed_command = parser.get_parsed()
+        self.__namespace = parser.get_namespace()
+        self.__inp_stream = stdin
+        self.__out_stream = stdout
 
-    def split_by_pipe(self):
-        result = [[]]
-        for element in self.cmd:
-            if Token.find(element) is Token.PIPE:
-                result.append([])
+    def get_namespace(self):
+        return self.__namespace
+
+    def __make_assignments(self) -> bool:
+        arg_num = len(self.__parsed_command)
+        if arg_num == 3 and Token.find(self.__parsed_command[0]) is Token.FAIL:
+            var = self.__parsed_command[0]
+            self.__namespace[var] = self.__parsed_command[2]
+            return True
+
+    def __commands_and_args(self) -> list:
+        divided_by_pipe = [[]]
+        for elem in self.__parsed_command:
+            if Token.find(elem) is Token.PIPE:
+                divided_by_pipe.append([])
             else:
-                result[-1].append(element)
-        self.splitted = result
+                divided_by_pipe[-1].append(elem)
+        return [(arr[0], tuple(arr[1:])) for arr in divided_by_pipe]
 
+    def test(self):
+        return self.__commands_and_args()
 
-cmd = 'echo \'$Hello, world!\' | wc'
-answer = 'echo \'$Hello, world!\' | wc'
-nmsps = {'Hello': 'lol', 'zero': '0'}
-_pars = Parser(nmsps)
-_pars.parse(cmd)
-_pars.substitute()
-_pars.make_clear_output()
-print(nmsps)
-print(cmd)
-print(''.join(_pars.sub))
-print(answer)
-print(_pars.output)
+    def evaluate_all(self) -> None:
 
-core = Core(_pars)
-core.split_by_pipe()
-print(core.splitted)
+        if self.__make_assignments():
+            return
+
+        cmd_arg = self.__commands_and_args()
+        out_stream = StringIO()
+        inp_stream = self.__inp_stream
+        for pair in cmd_arg:
+            command_name, args = pair
+            command_class = self.__commands[command_name]()
+            command_class.set_inp_stream(inp_stream)
+            command_class.set_out_stream(out_stream)
+            command_class.evaluate(*args)
+            inp_stream = out_stream
+            out_stream.seek(0, 0)
+            out_stream = StringIO()
+        print(inp_stream.getvalue(), file=self.__out_stream, end='')

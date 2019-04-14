@@ -1,44 +1,50 @@
-from skbio.util._decorator import overrides
 import os
+from abc import ABC
+from io import StringIO
 
 
-class CommandInterface(object):
-    def __init__(self, stream, *args):
-        self.arguments = args
-        self.stream = stream
+class CommandInterface(ABC):
+    def __init__(self):
+        self.__inp_stream = None
+        self.__out_stream = None
 
-    def main_method(self, *args):
+    def evaluate(self, *args) -> None:
         pass
 
-    def evaluate(self):
-        print(self.main_method(self.arguments), file=self.stream)
+    def set_inp_stream(self, stream: StringIO) -> None:
+        self.__inp_stream = stream
 
-    def get_stream(self, stream):
-        self.stream = stream
+    def set_out_stream(self, stream: StringIO) -> None:
+        self.__out_stream = stream
 
-    def pass_stream(self):
-        pass
+    def get_inp_stream(self) -> StringIO:
+        return self.__inp_stream
+
+    def get_out_stream(self) -> StringIO:
+        return self.__out_stream
 
 
 class Cat(CommandInterface):
-    @overrides
-    def main_method(self, path):
-        with open(path, 'r') as input_file:
-            result = ''
-            for line in input_file:
-                result += line
-        return result
+    def evaluate(self, *args) -> None:
+        if args:
+            path = args[0]
+            with open(path, 'r') as input_file:
+                for line in input_file:
+                    self.get_out_stream().write(line)
+        else:
+            line = self.get_inp_stream().readline()
+            while line:
+                print(line, file=self.get_out_stream())
+                line = self.get_inp_stream().readline()
 
 
 class Echo(CommandInterface):
-    @overrides
-    def main_method(self, *args):
-        return args
+    def evaluate(self, *args) -> None:
+        print(' '.join(args), file=self.get_out_stream())
 
 
 class Wc(CommandInterface):
-    @overrides
-    def main_method(self, *args):
+    def evaluate(self, *args) -> None:
         result = []
         for path in args:
             result.append({'line': 0, 'word': 0, 'byte': 0, 'file': path})
@@ -58,10 +64,14 @@ class Wc(CommandInterface):
                     res['byte'],
                     res['file'])
 
-        return string_result
+        print(string_result, file=self.get_out_stream())
 
 
 class Pwd(CommandInterface):
-    @overrides
-    def main_method(self):
-        return os.getcwd()
+    def evaluate(self, *args) -> None:
+        print(os.getcwd(), file=self.get_out_stream())
+
+
+class External(CommandInterface):
+    def evaluate(self, *args) -> None:
+        print('external', file=self.get_out_stream())
