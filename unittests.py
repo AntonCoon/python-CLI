@@ -63,6 +63,13 @@ class PublicParser(parser.Parser):
         self._Parser__substitute_inside_2apostrophe()
         return self._Parser__rez
 
+    def join_inside_single_apostrophe(self) -> list:
+        self._Parser__join_inside_single_apostrophe()
+        return self._Parser__rez
+
+    def get_rez(self):
+        return self._Parser__rez
+
 
 class ParserTestSplit(unittest.TestCase):
     def test(self):
@@ -94,6 +101,52 @@ class ParserTestSubstituteInside2Apostrophe(unittest.TestCase):
         self.assertEqual(
             _parser.substitute_inside_2apostrophe(),
             ['wc', ' ', '"', 'test_1.txt', '"', ' ', '|', ' ', 'echo'])
+
+
+class ParserTestJoin(unittest.TestCase):
+    def test(self):
+        namespace: DefaultDict[str, Any] = defaultdict(lambda: '')
+        _parser = PublicParser(namespace)
+
+        _parser.split_by_tokens('echo \'one two\'')
+        _parser.substitute_inside_2apostrophe()
+        self.assertEqual(
+            _parser.join_inside_single_apostrophe(),
+            ['echo', ' ', 'one two', "'"]
+        )
+
+
+class ParserTestParse(unittest.TestCase):
+    def test(self):
+        namespace: DefaultDict[str, Any] = defaultdict(lambda: '')
+        _parser = PublicParser(namespace)
+        _parser.parse('echo one two')
+        self.assertEqual(_parser.get_rez(), ['echo', 'one', 'two'])
+
+        namespace: DefaultDict[str, Any] = defaultdict(lambda: '')
+        namespace['test'] = 'test_files/test_1.txt'
+        _parser = PublicParser(namespace)
+        _parser.parse('echo \"$test two\"')
+        self.assertEqual(
+            _parser.get_rez(),
+            ['echo', 'test_files/test_1.txt', 'two']
+        )
+
+        namespace: DefaultDict[str, Any] = defaultdict(lambda: '')
+        _parser = PublicParser(namespace)
+        _parser.parse('echo \"$test two\"')
+        self.assertEqual(
+            _parser.get_rez(),
+            ['echo', 'two']
+        )
+
+        namespace: DefaultDict[str, Any] = defaultdict(lambda: '')
+        _parser = PublicParser(namespace)
+        _parser.parse('echo \'test two\'')
+        self.assertEqual(
+            _parser.get_rez(),
+            ['echo', 'test two']
+        )
 
 
 if __name__ == '__main__':
