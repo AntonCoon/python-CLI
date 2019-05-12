@@ -40,6 +40,7 @@ class Cat(CommandInterface):
 
 class Echo(CommandInterface):
     def evaluate(self, *args) -> None:
+        args = list(map(str, args))
         print(' '.join(args), file=self.get_out_stream())
 
 

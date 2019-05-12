@@ -4,7 +4,7 @@ from typing import Any, DefaultDict
 
 
 if __name__ == '__main__':
-    global_namespace = defaultdict()
+    global_namespace: DefaultDict[str, Any] = defaultdict(lambda: '')
     commands: DefaultDict[str, Any] = defaultdict(lambda: functions.External)
     commands['cat'] = functions.Cat
     commands['echo'] = functions.Echo
