@@ -83,7 +83,8 @@ def external(name):
 
     class NamedExternal(CommandInterface):
         def evaluate(self, *args) -> None:
-            print(name, file=self.get_out_stream())
+            args = list(map(str, args))
+            os.system(name + ' ' + ' '.join(args))
 
     return NamedExternal
 

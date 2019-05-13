@@ -24,7 +24,14 @@ if __name__ == '__main__':
     while True:
         cmd = input('>>')
         _parser = parser.Parser(global_namespace)
-        _parser.parse(cmd)
+        try:
+            _parser.parse(cmd)
+        except Exception as e:
+            print('parsing error', e)
         core = parser.Core(_parser, commands)
-        core.evaluate_all()
+        try:
+            core.evaluate_all()
+        except Exception as e:
+            print('evaluation error', e)
+
         global_namespace = core.get_namespace()
