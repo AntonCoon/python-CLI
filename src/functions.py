@@ -4,6 +4,7 @@ from io import StringIO
 
 
 class CommandInterface(ABC):
+    # Common command interface for available commands
     def __init__(self):
         self.__inp_stream = None
         self.__out_stream = None
@@ -80,7 +81,7 @@ class Exit(CommandInterface):
 
 
 def external(name):
-
+    # Factory of external command classes
     class NamedExternal(CommandInterface):
         def evaluate(self, *args) -> None:
             args = list(map(str, args))

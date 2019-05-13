@@ -45,6 +45,7 @@ class EmptyParserResult(Exception):
 
 
 class Parser(object):
+    # Class with methods needed for pars string commands to array of strings
     def __init__(self, namespace: defaultdict):
         self.__namespace = namespace
         self.__rez = None
@@ -65,6 +66,7 @@ class Parser(object):
 
     @staticmethod
     def substitute_on_segment(segment: list, namespace: defaultdict) -> list:
+        # make each substitution on segment
         for idx, element in enumerate(segment):
             if Token.find(element) is Token.SUBSTITUTION:
                 segment[idx + 1] = namespace[segment[idx + 1]]
@@ -72,6 +74,7 @@ class Parser(object):
                 Token.find(e) is not Token.SUBSTITUTION]
 
     def __substitute_inside_2apostrophe(self) -> None:
+        # split list of commands by double apostrophe and make substitution
         positions = [pos for pos, elem in enumerate(self.__rez)
                      if Token.find(elem) is Token.DOUBLE_APOSTROPHE]
         if len(positions) % 2 != 0:
@@ -89,6 +92,7 @@ class Parser(object):
         self.__rez = substituted
 
     def __join_inside_single_apostrophe(self) -> None:
+        # join all arguments inside single apostrophe
         positions = [pos for pos, elem in enumerate(self.__rez)
                      if Token.find(elem) is Token.APOSTROPHE]
         if len(positions) % 2 != 0:
@@ -125,6 +129,9 @@ class Parser(object):
 
 
 class Core(object):
+    # class which responsible for evaluate each command.It take parser and
+    # evaluate each command.If commands split by pipe then stream with output
+    # of previous command passed to next command
     def __init__(self, parser: Parser, commands: DefaultDict[str, Any]):
         self.__commands = commands
         self.__parsed_command = parser.get_parsed()
@@ -136,6 +143,7 @@ class Core(object):
         return self.__namespace
 
     def __make_assignments(self) -> bool:
+        # make assignment if it's possible
         arg_num = len(self.__parsed_command)
         if arg_num == 3 and Token.find(self.__parsed_command[0]) is Token.FAIL:
             var = self.__parsed_command[0]
@@ -143,6 +151,8 @@ class Core(object):
             return True
 
     def __commands_and_args(self) -> list:
+        # transform command array to array of tuples of commands and it's
+        # arguments
         divided_by_pipe = [[]]
         for elem in self.__parsed_command:
             if Token.find(elem) is Token.PIPE:
@@ -150,9 +160,6 @@ class Core(object):
             else:
                 divided_by_pipe[-1].append(elem)
         return [(arr[0], tuple(arr[1:])) for arr in divided_by_pipe]
-
-    def test(self):
-        return self.__commands_and_args()
 
     def evaluate_all(self) -> None:
 

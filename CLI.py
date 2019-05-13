@@ -21,6 +21,7 @@ if __name__ == '__main__':
     commands['wc'] = functions.Wc
     commands['pwd'] = functions.Pwd
     commands['exit'] = functions.Exit
+    # main loop
     while True:
         cmd = input('>>')
         _parser = parser.Parser(global_namespace)
