@@ -46,6 +46,7 @@ class Echo(CommandInterface):
 
 class Wc(CommandInterface):
     def evaluate(self, *args) -> None:
+        args = list(map(str, args))
         result = []
         for path in args:
             result.append({'line': 0, 'word': 0, 'byte': 0, 'file': path})
@@ -73,6 +74,16 @@ class Pwd(CommandInterface):
         print(os.getcwd(), file=self.get_out_stream())
 
 
-class External(CommandInterface):
+class Exit(CommandInterface):
     def evaluate(self, *args) -> None:
-        print('external', file=self.get_out_stream())
+        exit()
+
+
+def external(name):
+
+    class NamedExternal(CommandInterface):
+        def evaluate(self, *args) -> None:
+            print(name, file=self.get_out_stream())
+
+    return NamedExternal
+
