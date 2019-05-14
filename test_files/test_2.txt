@@ -1,0 +1,7 @@
+1 This document gives coding conventions for the Python code comprising the standard
+2 library in the main Python distribution. Please see the companion informational PEP
+3 describing style guidelines for the C code in the C implementation of Python.
+4 This document and PEP 257 (Docstring Conventions) were adapted from Guido's original
+5 Python Style Guide essay, with some additions from Barry's style guide.
+6 This style guide evolves over time as additional conventions are identified and past
+7 conventions are rendered obsolete by changes in the language itself.

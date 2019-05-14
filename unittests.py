@@ -53,6 +53,18 @@ class PwdTest(unittest.TestCase):
         self.assertEqual(test_stream.getvalue(), os.getcwd()+'\n')
 
 
+class GrepTest(unittest.TestCase):
+
+    def test(self):
+        grep = functions.Grep()
+        test_stream_out = StringIO()
+        grep.set_out_stream(test_stream_out)
+        grep.evaluate(' Please ', 'test_files/test_2.txt', '-A', '0', '-i')
+        test_stream = grep.get_out_stream()
+        self.assertEqual(
+            test_stream.getvalue()[:10], '2 library ')
+
+
 # parser tests
 class PublicParser(parser.Parser):
     def split_by_tokens(self, command: str) -> list:

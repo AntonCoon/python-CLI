@@ -1,4 +1,6 @@
 import os
+import argparse
+import re
 from abc import ABC
 from io import StringIO
 
@@ -75,6 +77,81 @@ class Pwd(CommandInterface):
         print(os.getcwd(), file=self.get_out_stream())
 
 
+class Grep(CommandInterface):
+    # Grep command implementation
+    def __init__(self):
+        super().__init__()
+        self.parser = argparse.ArgumentParser(
+            description='Simple grep implementation')
+
+        self.parser.add_argument('pattern', metavar='PATTERN',
+                                 type=str, nargs=1)
+
+        self.parser.add_argument('files', metavar='FILES', type=str,
+                                 nargs='+')
+
+        self.parser.add_argument('-i', '--ignore-case',
+                                 help='ignore case of letters',
+                                 default=False, action='store_true')
+
+        self.parser.add_argument('-w', '--whole-words',
+                                 help='search just whole words',
+                                 default=False, action='store_true')
+
+        self.parser.add_argument('-A', '--accumulate',
+                                 metavar='COUNT', type=int,
+                                 help='Increase output verbosity.')
+
+        self.file_content = None
+
+    def create_output_string(self, parsed_args, path_to_file=None) -> str:
+        # method take parsed arguments and path to file
+        # and return output string. In case when path to file by default
+        # input stream of class using as input
+        def _grep(input_stream: StringIO) -> str:
+            # inner
+            _flag = 0
+            if parsed_args.ignore_case:
+                _flag = re.IGNORECASE
+            _pattern = parsed_args.pattern[0]
+            if parsed_args.whole_words:
+                _pattern = '\b{}\b'.format(parsed_args.pattern[0])
+            after_line = 0
+            if parsed_args.accumulate:
+                after_line = parsed_args.accumulate
+            result = list()
+            line_number = 0
+            for line in input_stream:
+                line_number += 1
+                if re.search(_pattern, line, flags=_flag):
+                    result.append(line)
+                    break
+            for idx, line in enumerate(input_stream):
+                if line_number < idx < line_number + after_line:
+                    result.append(line)
+                if idx > line_number + after_line:
+                    break
+
+            return ''.join(result)
+
+        if path_to_file is None:
+            return _grep(self.get_inp_stream())
+        else:
+            with open(path_to_file) as _input_stream:
+                return _grep(_input_stream)
+
+    def evaluate(self, *args) -> None:
+        args = list(map(str, args))
+        parsed_args = self.parser.parse_args(args)
+        if parsed_args.files:
+            for file in parsed_args.files:
+                print(self.create_output_string(parsed_args, file),
+                      file=self.get_out_stream(), end='')
+        else:
+            print(self.create_output_string(parsed_args),
+                  file=self.get_out_stream(), end='')
+
+
 class Exit(CommandInterface):
     def evaluate(self, *args) -> None:
         exit()
@@ -88,4 +165,3 @@ def external(name):
             os.system(name + ' ' + ' '.join(args))
 
     return NamedExternal
-
