@@ -6,4 +6,4 @@ Simple Command Line Interface implemented by Python3. Contains realization of th
   - wc;
   - pwd;
   - exit;
-  - external commands will be called from the standard shell.
+  - external commands such as **vim** or **git** will be called from the standard shell.
