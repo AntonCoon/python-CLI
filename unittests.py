@@ -1,6 +1,5 @@
 import unittest
 import os
-import sys
 from collections import defaultdict
 from typing import Any, DefaultDict
 from src import functions, parser

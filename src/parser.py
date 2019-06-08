@@ -70,7 +70,7 @@ class Parser(object):
         for idx, element in enumerate(segment):
             if Token.find(element) is Token.SUBSTITUTION:
                 segment[idx + 1] = namespace[segment[idx + 1]]
-        return [e for e in segment if Token.find(e) is not Token.APOSTROPHE and
+        return [e for e in segment if Token.find(e) and
                 Token.find(e) is not Token.SUBSTITUTION]
 
     def __substitute_inside_2apostrophe(self) -> None:
@@ -109,9 +109,13 @@ class Parser(object):
         self.__rez = [e for e in joined if
                       not Token.find(e) is Token.SUBSTITUTION]
 
+    def __substitute_outside_apostrophe(self) -> None:
+        self.__rez = Parser.substitute_on_segment(self.__rez, self.__namespace)
+
     def parse(self, command: str) -> None:
         self.__split_by_tokens(command)
         self.__substitute_inside_2apostrophe()
+        self.__substitute_outside_apostrophe()
         self.__join_inside_single_apostrophe()
         # clear all apostrophe and empty or space
         self.__rez = [e for e in self.__rez if e and
@@ -143,9 +147,12 @@ class Core(object):
         return self.__namespace
 
     def __make_assignments(self) -> bool:
+        if len(self.__parsed_command) < 3:
+            return False
         # make assignment if it's possible
         arg_num = len(self.__parsed_command)
-        if arg_num == 3 and Token.find(self.__parsed_command[0]) is Token.FAIL:
+        token_ = Token.find(self.__parsed_command[1])
+        if arg_num == 3 and token_ is Token.ASSIGNMENT:
             var = self.__parsed_command[0]
             self.__namespace[var] = self.__parsed_command[2]
             return True
