@@ -28,6 +28,7 @@ class CommandInterface(ABC):
 
 
 class Cat(CommandInterface):
+    # Implementation of cat command. Just print stream input in stdout
     def evaluate(self, *args) -> None:
         if args:
             path = args[0]
@@ -42,12 +43,15 @@ class Cat(CommandInterface):
 
 
 class Echo(CommandInterface):
+    # Implementation of echo command. Print arguments in stdout
     def evaluate(self, *args) -> None:
         args = list(map(str, args))
         print(' '.join(args), file=self.get_out_stream())
 
 
 class Wc(CommandInterface):
+    # Implementation of wc command. Calculate line, word and byte amount
+    # and print it in stdout
     def evaluate(self, *args) -> None:
         args = list(map(str, args))
         result = []
@@ -73,6 +77,7 @@ class Wc(CommandInterface):
 
 
 class Pwd(CommandInterface):
+    # Implementation of wc command, print current working directory in stdout
     def evaluate(self, *args) -> None:
         print(os.getcwd(), file=self.get_out_stream())
 
