@@ -12,7 +12,8 @@ Simple Command Line Interface implemented by Python3
 );
   - exit - Exits the shell;
 
-**External commands**
+**External commands**  
+
 external commands are calling from the standard shell
 
 ## Class diagram
