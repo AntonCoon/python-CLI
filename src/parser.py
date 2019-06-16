@@ -23,7 +23,7 @@ class Token(Enum):
     PWD = 'pwd'
 
     @staticmethod
-    def find(symbol: str):
+    def find(symbol: str) -> Enum:
         for name, member in Token.__members__.items():
             if member.value == symbol:
                 return member
