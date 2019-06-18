@@ -1,7 +1,8 @@
 # python-CLI
 
 ## Description
-Simple Command Line Interface implemented by Python3
+Simple Command Line Interface implemented by Python3  
+
 **Builtin commands**
   - cat - Concatenate files to standard output;
   - echo - Echo the strings to standard output;
@@ -11,7 +12,8 @@ Simple Command Line Interface implemented by Python3
 );
   - exit - Exits the shell;
 
-**External commands**
+**External commands**  
+
 external commands are calling from the standard shell
 
 ## Class diagram
