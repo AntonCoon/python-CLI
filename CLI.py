@@ -14,8 +14,8 @@ class KeyDefaultDict(defaultdict):
 
 
 if __name__ == '__main__':
-    global_namespace: DefaultDict = defaultdict(lambda: '')
-    commands: DefaultDict = KeyDefaultDict(
+    global_namespace: DefaultDict[str, Any] = defaultdict(lambda: '')
+    commands: DefaultDict[str, Any] = KeyDefaultDict(
         lambda name: functions.external(name))
     commands['cat'] = functions.Cat
     commands['echo'] = functions.Echo

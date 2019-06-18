@@ -86,28 +86,29 @@ class Grep(CommandInterface):
     # Grep command implementation
     def __init__(self):
         super().__init__()
-        self.parser = argparse.ArgumentParser(
-            description='Simple grep implementation')
-
-        self.parser.add_argument('pattern', metavar='PATTERN',
-                                 type=str, nargs=1)
-
-        self.parser.add_argument('files', metavar='FILES', type=str,
-                                 nargs='+')
-
-        self.parser.add_argument('-i', '--ignore-case',
-                                 help='ignore case of letters',
-                                 default=False, action='store_true')
-
-        self.parser.add_argument('-w', '--whole-words',
-                                 help='search just whole words',
-                                 default=False, action='store_true')
-
-        self.parser.add_argument('-A', '--accumulate',
-                                 metavar='COUNT', type=int,
-                                 help='Increase output verbosity.')
 
         self.file_content = None
+
+    parser = argparse.ArgumentParser(
+        description='Simple grep implementation')
+
+    parser.add_argument('pattern', metavar='PATTERN',
+                        type=str, nargs=1)
+
+    parser.add_argument('files', metavar='FILES', type=str,
+                        nargs='+')
+
+    parser.add_argument('-i', '--ignore-case',
+                        help='ignore case of letters',
+                        default=False, action='store_true')
+
+    parser.add_argument('-w', '--whole-words',
+                        help='search just whole words',
+                        default=False, action='store_true')
+
+    parser.add_argument('-A', '--accumulate',
+                        metavar='COUNT', type=int,
+                        help='Increase output verbosity.')
 
     def create_output_string(self, parsed_args, path_to_file=None) -> str:
         # method take parsed arguments and path to file
@@ -147,7 +148,7 @@ class Grep(CommandInterface):
 
     def evaluate(self, *args) -> None:
         args = list(map(str, args))
-        parsed_args = self.parser.parse_args(args)
+        parsed_args = Grep.parser.parse_args(args)
         if parsed_args.files:
             for file in parsed_args.files:
                 print(self.create_output_string(parsed_args, file),

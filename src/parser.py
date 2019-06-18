@@ -112,11 +112,24 @@ class Parser(object):
     def __substitute_outside_apostrophe(self) -> None:
         self.__rez = Parser.substitute_on_segment(self.__rez, self.__namespace)
 
+    def __join_all_not_separated(self) -> None:
+        accomulated = ['']
+        if len(self.__rez) < 2:
+            return
+        for idx, element in enumerate(self.__rez):
+            if Token.find(element) is Token.FAIL and Token.find(self.__rez[idx - 1]) is Token.FAIL:
+                accomulated[-1] += element
+            else:
+                accomulated += [element]
+        self.__rez = [e for e in accomulated if e]
+
     def parse(self, command: str) -> None:
         self.__split_by_tokens(command)
         self.__substitute_inside_2apostrophe()
         self.__substitute_outside_apostrophe()
         self.__join_inside_single_apostrophe()
+        # join all tokens which not separated by space
+        self.__join_all_not_separated()
         # clear all apostrophe and empty or space
         self.__rez = [e for e in self.__rez if e and
                       not Token.find(e) is Token.APOSTROPHE and
