@@ -1,5 +1,7 @@
 # python-CLI
 
+[![Build Status](https://travis-ci.com/AntonCoon/python-CLI.svg?branch=task-2)](https://travis-ci.com/AntonCoon/python-CLI)
+
 ## Description
 Simple Command Line Interface implemented by Python3  
 
