@@ -53,27 +53,42 @@ class Wc(CommandInterface):
     # Implementation of wc command. Calculate line, word and byte amount
     # and print it in stdout
     def evaluate(self, *args) -> None:
-        args = list(map(str, args))
-        result = []
-        for path in args:
-            result.append({'line': 0, 'word': 0, 'byte': 0, 'file': path})
-            with open(path, 'r') as f:
-                for line in f:
-                    result[-1]['line'] += 1
-                    result[-1]['word'] += len(line.split())
-            with open(path, 'rb') as f:
-                for line in f:
-                    result[-1]['byte'] += len(line)
-        string_result = ''
-        for res in result:
-            string_result += \
-                '  {}  {}  {}  {}\n'.format(
-                    res['line'],
-                    res['word'],
-                    res['byte'],
-                    res['file'])
+        if args:
+            args = list(map(str, args))
+            result = []
+            for path in args:
+                result.append({'line': 0, 'word': 0, 'byte': 0, 'file': path})
+                with open(path, 'r') as f:
+                    for line in f:
+                        result[-1]['line'] += 1
+                        result[-1]['word'] += len(line.split())
+                with open(path, 'rb') as f:
+                    for line in f:
+                        result[-1]['byte'] += len(line)
+            string_result = ''
+            for res in result:
+                string_result += \
+                    '  {}  {}  {}  {}\n'.format(
+                        res['line'],
+                        res['word'],
+                        res['byte'],
+                        res['file'])
 
-        print(string_result, file=self.get_out_stream())
+            print(string_result, file=self.get_out_stream())
+        else:
+            res = {'line': 0, 'word': 0, 'byte': 0}
+            line = self.get_inp_stream().readline()
+            while line:
+                res['line'] += 1
+                res['word'] += len(line.split())
+                res['byte'] += len(line.encode('utf-8'))
+                line = self.get_inp_stream().readline()
+            string_result = '  {}  {}  {}\n'.format(
+                        res['line'],
+                        res['word'],
+                        res['byte'])
+            print(string_result, file=self.get_out_stream())
+
 
 
 class Pwd(CommandInterface):
