@@ -22,6 +22,7 @@ if __name__ == '__main__':
     commands['wc'] = functions.Wc
     commands['pwd'] = functions.Pwd
     commands['exit'] = functions.Exit
+    commands['grep'] = functions.Grep
     # main loop
     while True:
         cmd = input('>>')

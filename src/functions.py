@@ -111,7 +111,7 @@ class Grep(CommandInterface):
                         type=str, nargs=1)
 
     parser.add_argument('files', metavar='FILES', type=str,
-                        nargs='+')
+                        nargs='*')
 
     parser.add_argument('-i', '--ignore-case',
                         help='ignore case of letters',
@@ -122,7 +122,8 @@ class Grep(CommandInterface):
                         default=False, action='store_true')
 
     parser.add_argument('-A', '--accumulate',
-                        metavar='COUNT', type=int,
+                        metavar='COUNT',
+                        type=int,
                         help='Increase output verbosity.')
 
     def create_output_string(self, parsed_args, path_to_file=None) -> str:
@@ -139,6 +140,8 @@ class Grep(CommandInterface):
                 _pattern = '\b{}\b'.format(parsed_args.pattern[0])
             after_line = 0
             if parsed_args.accumulate:
+                if parsed_args.accumulate <= 0:
+                    raise argparse.ArgumentTypeError('negative value')
                 after_line = parsed_args.accumulate
             result = list()
             line_number = 0
