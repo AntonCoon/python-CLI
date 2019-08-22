@@ -19,4 +19,4 @@ Simple Command Line Interface implemented by Python3. Software design course hom
 external commands are calling from the standard shell
 
 ## Class diagram
-![diagram](https://raw.githubusercontent.com/AntonCoon/python-CLI/task-2/class-diagram.png)
+![diagram](https://raw.githubusercontent.com/AntonCoon/python-CLI/task-2/class-diagram.p
